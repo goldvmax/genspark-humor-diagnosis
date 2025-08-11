@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーモア診断アプリ - プレビュー版</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .chat-message {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .option-chip {
+            transition: all 0.3s ease;
+            animation: slideInFromRight 0.5s ease-out;
+        }
+        
+        .option-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .result-card {
+            animation: bounceIn 0.8s ease-out;
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+            animation: typing 1.5s infinite;
+        }
+        
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInFromRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes typing {
+            0%, 20% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        .theme-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .theme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Landing Page -->
+    <div id="landingPage" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+            <div class="container mx-auto px-4 py-8 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4">
+                    <i class="fas fa-laugh-beam mr-3"></i>
+                    ユーモア診断アプリ
+                </h1>
+                <p class="text-xl md:text-2xl mb-6">3分で"笑って当たる"診断体験</p>
+                <button onclick="scrollToThemes()" class="bg-white text-purple-600 px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition-colors">
+                    診断を始める <i class="fas fa-arrow-down ml-2"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Features -->
+        <section class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">🍣</div>
+                        <h3 class="font-bold text-xl mb-2">軽妙なユーモア</h3>
+                        <p class="text-gray-600">安心して笑える、やさしいツッコミで楽しい診断体験</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">💬</div>
+                        <h3 class="font-bold text-xl mb-2">チャット形式</h3>
+                        <p class="text-gray-600">会話しながら進む、直感的でスムーズなインターフェース</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">🎯</div>
+                        <h3 class="font-bold text-xl mb-2">3分完結</h3>
+                        <p class="text-gray-600">サクッと楽しめて、すぐにシェアできる軽快さ</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Theme Selection -->
+        <section id="themeSelection" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12">診断テーマを選んでください</h2>
+                <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <div class="theme-card bg-white rounded-xl shadow-lg p-6" onclick="startDiagnosis('sushi')">
+                        <div class="text-6xl text-center mb-4">🍣</div>
+                        <h3 class="text-xl font-bold text-center mb-3">寿司ネタ診断</h3>
+                        <p class="text-gray-600 text-center">あなたの性格を寿司ネタに例えると？本マグロ、サーモン、玉子...どのネタになるかな？</p>
+                    </div>
+                    <div class="theme-card bg-white rounded-xl shadow-lg p-6" onclick="startDiagnosis('aimodel')">
+                        <div class="text-6xl text-center mb-4">🧠</div>
+                        <h3 class="text-xl font-bold text-center mb-3">AIモデル診断</h3>
+                        <p class="text-gray-600 text-center">あなたをAIモデルに例えると？GPT、BERT、Diffusion...どのモデルタイプ？</p>
+                    </div>
+                    <div class="theme-card bg-white rounded-xl shadow-lg p-6" onclick="startDiagnosis('kansai_tsukkomi')">
+                        <div class="text-6xl text-center mb-4">🎤</div>
+                        <h3 class="text-xl font-bold text-center mb-3">関西つっこみ診断</h3>
+                        <p class="text-gray-600 text-center">あなたのつっこみスタイルは？「どないやねん」「ええやんか」...どのタイプ？</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-8 mt-auto">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2025 ユーモア診断アプリ - 娯楽目的のジョーク診断です</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Chat Interface -->
+    <div id="chatInterface" class="hidden min-h-screen bg-gray-100">
+        <!-- Header with Progress -->
+        <div class="bg-white shadow-sm">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <button onclick="goHome()" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left"></i> ホームに戻る
+                    </button>
+                    <div class="flex-1 mx-4">
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div id="progressBar" class="progress-bar bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div id="progressText" class="text-sm text-gray-600">0/4</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="flex-1 overflow-y-auto pb-20" style="height: calc(100vh - 140px);">
+            <div id="chatMessages" class="container mx-auto px-4 py-6 space-y-4"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div id="optionArea" class="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+            <div class="container mx-auto">
+                <div id="optionButtons" class="flex flex-wrap gap-2 justify-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Card -->
+    <div id="resultInterface" class="hidden min-h-screen bg-gray-100 py-8">
+        <div class="container mx-auto px-4">
+            <div id="resultCard" class="result-card max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <!-- Result content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme data (same as in the original app)
+        const themes = {
+            sushi: {
+                theme_id: "sushi",
+                title: "あなたを寿司ネタに例えると？",
+                humor_style: "witty",
+                questions: [
+                    {qid: "q1", text: "朝のテンションは？", type: "choice", options: ["静かに浸る", "すぐ全開", "じわ上げ"], weight: 1},
+                    {qid: "q2", text: "締切との距離感", type: "choice", options: ["常に先手", "当日勝負", "運命に任せる"], weight: 2},
+                    {qid: "q3", text: "飲み会での立ち回り", type: "choice", options: ["聞き役", "盛り上げ役", "ミステリアス"], weight: 1},
+                    {qid: "q4", text: "好きな食感", type: "choice", options: ["トロっと", "ぷりっと", "ふわっと"], weight: 1}
+                ],
+                rules: {
+                    map: [
+                        {if: {q1: "すぐ全開", q2: "当日勝負"}, type_id: "t_maguro"},
+                        {if: {q3: "盛り上げ役", q4: "ぷりっと"}, type_id: "t_ebi"},
+                        {if: {q1: "静かに浸る", q3: "聞き役"}, type_id: "t_tamago"},
+                        {if: {q4: "トロっと", q2: "常に先手"}, type_id: "t_maguro"},
+                        {if: {q1: "じわ上げ", q4: "ふわっと"}, type_id: "t_salmon"}
+                    ],
+                    fallback: "t_salmon"
+                },
+                types: [
+                    {type_id: "t_maguro", label: "本マグロ", emoji: "🐟", description: "芯が強い瞬発力タイプ"},
+                    {type_id: "t_tamago", label: "玉子", emoji: "🍳", description: "やさしさで場を包む癒やし系"},
+                    {type_id: "t_salmon", label: "サーモン", emoji: "🍣", description: "みんな大好き万能選手"},
+                    {type_id: "t_ebi", label: "海老", emoji: "🍤", description: "弾む食感のムードメーカー"}
+                ]
+            },
+            aimodel: {
+                theme_id: "aimodel",
+                title: "あなたをAIモデルに例えると？",
+                humor_style: "witty",
+                questions: [
+                    {qid: "q1", text: "アイデアの出し方", type: "choice", options: ["ひらめき一発", "計画的に積む", "状況で切替"], weight: 2},
+                    {qid: "q2", text: "出力スタイル", type: "choice", options: ["長文で丁寧に", "要点を箇条書き", "イメージで説明"], weight: 1},
+                    {qid: "q3", text: "初動は？", type: "choice", options: ["まず試す", "まず調べる", "誰かに相談"], weight: 1},
+                    {qid: "q4", text: "好きなタスク", type: "choice", options: ["文章生成", "要約・検索", "画像ネタ"], weight: 2}
+                ],
+                rules: {
+                    map: [
+                        {if: {q1: "ひらめき一発", q4: "画像ネタ"}, type_id: "t_diffusion"},
+                        {if: {q2: "要点を箇条書き", q3: "まず調べる"}, type_id: "t_bert"},
+                        {if: {q2: "長文で丁寧に", q3: "誰かに相談"}, type_id: "t_gpt"},
+                        {if: {q1: "計画的に積む", q4: "要約・検索"}, type_id: "t_bert"},
+                        {if: {q1: "状況で切替", q2: "イメージで説明"}, type_id: "t_gpt"}
+                    ],
+                    fallback: "t_gpt"
+                },
+                types: [
+                    {type_id: "t_gpt", label: "GPT", emoji: "🧠", description: "多芸多才なゼネラリスト"},
+                    {type_id: "t_bert", label: "BERT", emoji: "📚", description: "読み解き・要約の職人"},
+                    {type_id: "t_diffusion", label: "Diffusion", emoji: "🎨", description: "発想とイメージで魅せる"},
+                    {type_id: "t_rnn", label: "RNN", emoji: "🔁", description: "味わい深い伝統派"}
+                ]
+            },
+            kansai_tsukkomi: {
+                theme_id: "kansai_tsukkomi",
+                title: "関西つっこみタイプ診断",
+                humor_style: "kansai",
+                questions: [
+                    {qid: "q1", text: "ツッコミの速さ", type: "choice", options: ["即座に", "ちょい待ち", "温存しとく"], weight: 1},
+                    {qid: "q2", text: "ツッコミの温度", type: "choice", options: ["やさしめ", "そこそこ", "ピリッと"], weight: 2},
+                    {qid: "q3", text: "相手がスベった時", type: "choice", options: ["拾って伸ばす", "乗っかる", "空気を変える"], weight: 1},
+                    {qid: "q4", text: "好きなオチ", type: "choice", options: ["きれいに締める", "カオスで笑う", "たたみかける"], weight: 1}
+                ],
+                rules: {
+                    map: [
+                        {if: {q1: "即座に", q2: "ピリッと", q4: "たたみかける"}, type_id: "t_chauyaro"},
+                        {if: {q1: "ちょい待ち", q2: "やさしめ", q3: "拾って伸ばす"}, type_id: "t_ee_yanka"},
+                        {if: {q1: "温存しとく", q3: "空気を変える", q4: "きれいに締める"}, type_id: "t_moeewa"},
+                        {if: {q1: "即座に", q2: "そこそこ", q3: "乗っかる"}, type_id: "t_donaiyanen"}
+                    ],
+                    fallback: "t_donaiyanen"
+                },
+                types: [
+                    {type_id: "t_donaiyanen", label: "どないやねん", emoji: "🎤", description: "王道テンポで心地よく"},
+                    {type_id: "t_ee_yanka", label: "ええやんか", emoji: "🌈", description: "包容力で場をあたためる"},
+                    {type_id: "t_chauyaro", label: "ちゃうやろ", emoji: "✂️", description: "キレのあるピリ辛系"},
+                    {type_id: "t_moeewa", label: "もうええわ", emoji: "🔔", description: "スマートに締めるまとめ役"}
+                ]
+            }
+        };
+
+        // App state
+        let currentTheme = null;
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let stage = 'landing'; // landing, consent, questions, result
+
+        // Utility functions
+        function scrollToThemes() {
+            document.getElementById('themeSelection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function startDiagnosis(themeId) {
+            currentTheme = themes[themeId];
+            currentQuestionIndex = 0;
+            answers = {};
+            stage = 'consent';
+            
+            document.getElementById('landingPage').classList.add('hidden');
+            document.getElementById('chatInterface').classList.remove('hidden');
+            
+            initializeChat();
+        }
+
+        function goHome() {
+            document.getElementById('chatInterface').classList.add('hidden');
+            document.getElementById('resultInterface').classList.add('hidden');
+            document.getElementById('landingPage').classList.remove('hidden');
+            
+            // Reset state
+            currentTheme = null;
+            currentQuestionIndex = 0;
+            answers = {};
+            stage = 'landing';
+            
+            // Clear chat
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('optionButtons').innerHTML = '';
+            updateProgress(0, 0, 4);
+        }
+
+        function initializeChat() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            
+            // Greeting
+            setTimeout(() => {
+                addBotMessage("こんにちは！3分で笑って帰れます。準備OK？ 😊");
+                setTimeout(() => {
+                    addBotMessage(`今日は「${currentTheme.title}」で診断しますね！`);
+                    setTimeout(() => {
+                        showConsentMessage();
+                    }, 1000);
+                }, 1000);
+            }, 500);
+        }
+
+        function showConsentMessage() {
+            addBotMessage("これはジョークです。診断結果は娯楽目的に限ります。よろしいですか？");
+            showOptions(['はい、楽しみます！', 'いいえ'], ['consent_yes', 'consent_no']);
+        }
+
+        function handleOptionClick(optionType, value) {
+            addUserMessage(value);
+            
+            if (optionType === 'consent_yes') {
+                stage = 'questions';
+                setTimeout(() => {
+                    askQuestion();
+                }, 1000);
+            } else if (optionType === 'consent_no') {
+                addBotMessage("また遊びに来てくださいね！");
+                setTimeout(() => {
+                    goHome();
+                }, 2000);
+            } else if (optionType.startsWith('question_')) {
+                const questionId = currentTheme.questions[currentQuestionIndex].qid;
+                answers[questionId] = value;
+                currentQuestionIndex++;
+                
+                updateProgress(currentQuestionIndex, currentQuestionIndex, currentTheme.questions.length);
+                
+                if (currentQuestionIndex < currentTheme.questions.length) {
+                    setTimeout(() => {
+                        askQuestion();
+                    }, 1000);
+                } else {
+                    setTimeout(() => {
+                        showResult();
+                    }, 1000);
+                }
+            } else if (optionType === 'restart') {
+                currentQuestionIndex = 0;
+                answers = {};
+                stage = 'questions';
+                setTimeout(() => {
+                    askQuestion();
+                }, 500);
+            } else if (optionType === 'new_theme') {
+                goHome();
+            }
+        }
+
+        function askQuestion() {
+            if (currentQuestionIndex < currentTheme.questions.length) {
+                const question = currentTheme.questions[currentQuestionIndex];
+                
+                addBotMessage(`${question.text}`);
+                
+                const optionTypes = question.options.map((_, index) => `question_${currentQuestionIndex}_${index}`);
+                showOptions(question.options, optionTypes);
+            }
+        }
+
+        function showResult() {
+            addBotMessage("診断中...");
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                hideTypingIndicator();
+                const result = generateResult();
+                
+                document.getElementById('chatInterface').classList.add('hidden');
+                document.getElementById('resultInterface').classList.remove('hidden');
+                
+                displayResultCard(result);
+            }, 2000);
+        }
+
+        function generateResult() {
+            // Determine type based on rules
+            const resultType = determineType();
+            
+            // Generate humor text
+            const humorText = generateHumorText(resultType);
+            
+            return {
+                type: resultType,
+                title: `あなたは${resultType.label}タイプ`,
+                summary: humorText,
+                one_liner: `${resultType.label}っぽいあなた。${resultType.description}で、場を明るくする魅力の持ち主ですね！`,
+                share_text: `私は${resultType.label}タイプでした！ ${resultType.emoji} #ユーモア診断アプリ`
+            };
+        }
+
+        function determineType() {
+            // Check rules
+            for (const rule of currentTheme.rules.map) {
+                let matches = true;
+                for (const [qid, expectedAnswer] of Object.entries(rule.if)) {
+                    if (answers[qid] !== expectedAnswer) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) {
+                    return currentTheme.types.find(t => t.type_id === rule.type_id);
+                }
+            }
+            
+            // Fallback
+            return currentTheme.types.find(t => t.type_id === currentTheme.rules.fallback);
+        }
+
+        function generateHumorText(type) {
+            const humorTemplates = {
+                sushi: {
+                    t_maguro: "決める時はスッと前に出るあなた。濃厚だけどしつこくない、場を締める主役気質。でも実は意外と繊細？",
+                    t_tamago: "みんなの心をふんわり包むやさしさの塊。甘くて安心できる存在だけど、たまには意外な一面も見せちゃう。",
+                    t_salmon: "老若男女に愛される安定感。クセがなくて誰とでも合わせられる器用さが光る。実はコスパ最強？",
+                    t_ebi: "プリプリの弾力で場を盛り上げるムードメーカー。エビ反りするほど元気いっぱい！"
+                },
+                aimodel: {
+                    t_gpt: "何でもそれなりにこなす万能タイプ。でも時々暴走して変な答えを出しちゃうのがご愛嬌。",
+                    t_bert: "情報を読み解く力はピカイチ。でも時々マニアックすぎて周りがついてこられないかも？",
+                    t_diffusion: "発想力が豊かで創造性抜群。でも時々現実離れした夢を語っちゃうのが玉にキズ。",
+                    t_rnn: "古き良き伝統を大切にする職人気質。時間はかかるけど、じっくり考えた答えは味わい深い。"
+                },
+                kansai_tsukkomi: {
+                    t_donaiyanen: "関西の王道つっこみをマスターしたあなた。テンポよく場を仕切る司会者タイプ。",
+                    t_ee_yanka: "優しさあふれるつっこみで、相手を傷つけずに笑いを作る平和主義者。",
+                    t_chauyaro: "キレ味鋭いつっこみで場を引き締める。でも愛情たっぷりなので憎めない。",
+                    t_moeewa: "的確に締めくくるスマートなつっこみ。無駄がなくてカッコいい大人の魅力。"
+                }
+            };
+            
+            return humorTemplates[currentTheme.theme_id][type.type_id] || type.description;
+        }
+
+        function displayResultCard(result) {
+            const resultCard = document.getElementById('resultCard');
+            
+            resultCard.innerHTML = `
+                <div class="bg-gradient-to-br from-purple-500 via-blue-500 to-teal-400 text-white p-8 text-center">
+                    <div class="text-6xl mb-4">${result.type.emoji}</div>
+                    <h2 class="text-3xl font-bold mb-2">${result.type.label}</h2>
+                    <p class="text-lg opacity-90">${result.type.description}</p>
+                </div>
+                
+                <div class="p-8">
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <h3 class="font-bold text-lg mb-3 text-gray-800">診断結果</h3>
+                        <p class="text-gray-700 leading-relaxed">${result.summary}</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-gray-800 mb-3">
+                            <i class="fas fa-share-alt mr-2"></i>結果をシェアしよう！
+                        </h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <button onclick="shareToX('${result.share_text}')" 
+                                    class="bg-black text-white px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors">
+                                <i class="fab fa-x-twitter mr-2"></i>X (Twitter)
+                            </button>
+                            <button onclick="shareToLine('${result.share_text}')" 
+                                    class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition-colors">
+                                <i class="fab fa-line mr-2"></i>LINE
+                            </button>
+                            <button onclick="copyToClipboard('${result.share_text}')" 
+                                    class="bg-gray-500 text-white px-4 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                                <i class="fas fa-copy mr-2"></i>コピー
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
+                            <button onclick="restartDiagnosis()" 
+                                    class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors">
+                                <i class="fas fa-redo mr-2"></i>もう一回
+                            </button>
+                            <button onclick="goHome()" 
+                                    class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                                <i class="fas fa-home mr-2"></i>別テーマへ
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t text-center text-sm text-gray-500">
+                        ※ この診断は娯楽目的のジョークです
+                    </div>
+                </div>
+            `;
+        }
+
+        function restartDiagnosis() {
+            document.getElementById('resultInterface').classList.add('hidden');
+            document.getElementById('chatInterface').classList.remove('hidden');
+            
+            currentQuestionIndex = 0;
+            answers = {};
+            stage = 'questions';
+            
+            document.getElementById('chatMessages').innerHTML = '';
+            updateProgress(0, 0, currentTheme.questions.length);
+            
+            setTimeout(() => {
+                addBotMessage("もう一度やってみましょう！");
+                setTimeout(() => {
+                    askQuestion();
+                }, 1000);
+            }, 500);
+        }
+
+        // UI helper functions
+        function addBotMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message flex items-start space-x-3';
+            messageDiv.innerHTML = `
+                <div class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-sm"></i>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-4 max-w-md">
+                    <p class="text-gray-800">${message}</p>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message flex items-start space-x-3 justify-end';
+            messageDiv.innerHTML = `
+                <div class="bg-blue-500 text-white rounded-lg shadow-sm p-4 max-w-md">
+                    <p>${message}</p>
+                </div>
+                <div class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user text-sm"></i>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showOptions(options, optionTypes) {
+            const optionButtons = document.getElementById('optionButtons');
+            optionButtons.innerHTML = '';
+            
+            options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-chip bg-white border-2 border-purple-200 hover:border-purple-500 hover:bg-purple-50 px-4 py-2 rounded-full text-sm font-medium transition-all';
+                button.textContent = option;
+                button.onclick = () => {
+                    optionButtons.innerHTML = '';
+                    handleOptionClick(optionTypes[index], option);
+                };
+                
+                // Staggered animation
+                setTimeout(() => {
+                    optionButtons.appendChild(button);
+                }, index * 100);
+            });
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'typingIndicator';
+            messageDiv.className = 'chat-message flex items-start space-x-3';
+            messageDiv.innerHTML = `
+                <div class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-sm"></i>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-4 max-w-md">
+                    <div class="flex space-x-1">
+                        <div class="typing-indicator bg-gray-400 rounded-full w-2 h-2"></div>
+                        <div class="typing-indicator bg-gray-400 rounded-full w-2 h-2" style="animation-delay: 0.2s;"></div>
+                        <div class="typing-indicator bg-gray-400 rounded-full w-2 h-2" style="animation-delay: 0.4s;"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function updateProgress(current, completed, total) {
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            const percentage = (completed / total) * 100;
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${completed}/${total}`;
+        }
+
+        // Share functions
+        function shareToX(text) {
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function shareToLine(text) {
+            const url = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show success feedback
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-2"></i>コピーしました！';
+                button.classList.add('bg-green-500');
+                button.classList.remove('bg-gray-500');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-500');
+                    button.classList.add('bg-gray-500');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
